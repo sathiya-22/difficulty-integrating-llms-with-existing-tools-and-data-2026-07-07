@@ -1,2 +1,1 @@
-- 2024-07-07: Introduced pydantic-settings for robust environment variable management and type validation, separating configuration concerns into a dedicated `config.py` file.
 - 2026-07-15: Integrated Wayflow's embeddable AI workflow builder to enhance the LLM's interaction with existing tools and data, allowing for more flexible and dynamic workflow creation.
