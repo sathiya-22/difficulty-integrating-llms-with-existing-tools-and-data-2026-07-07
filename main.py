@@ -1,6 +1,7 @@
 import google.generativeai as genai
 from config import settings
 from pydantic import ValidationError
+import requests
 
 # Configure the generative AI model
 try:
@@ -13,15 +14,8 @@ except Exception as e:
     print(f"An unexpected error occurred during configuration: {e}")
     exit(1)
 
-
 def simulate_read_document(file_path: str) -> str:
-    """
-    Simulates reading content from a document.
-    In a real application, this would use libraries like python-docx, openpyxl, etc.
-    For this prototype, it returns a hardcoded string.
-    """
     print(f"Simulating reading document from: {file_path}")
-    # Hardcoded content for demonstration
     return """
     The quarterly financial report for Q1 2024 shows a 15% increase in revenue compared to the previous quarter, reaching $1.2 million.
     Net profit also saw a significant boost, up by 20% to $350,000, primarily driven by successful product launches and
@@ -30,9 +24,6 @@ def simulate_read_document(file_path: str) -> str:
     """
 
 def summarize_document_with_llm(document_content: str) -> str:
-    """
-    Uses the Gemini LLM to summarize the provided document content.
-    """
     model = genai.GenerativeModel('gemini-pro')
     prompt = f"""
     Please summarize the following document content concisely, highlighting key financial figures,
@@ -51,6 +42,27 @@ def summarize_document_with_llm(document_content: str) -> str:
     except Exception as e:
         return f"Error generating summary: {e}"
 
+def create_wayflow_workflow(document_content: str) -> str:
+    url = f"{settings.wayflow_url}/workflows"
+    payload = {
+        "name": "LLM Summarization Workflow",
+        "description": "A workflow for summarizing documents using LLM",
+        "steps": [
+            {
+                "name": "Summarize Document",
+                "action": "summarize",
+                "input": {
+                    "document_content": document_content
+                }
+            }
+        ]
+    }
+    response = requests.post(url, json=payload)
+    if response.status_code == 201:
+        return response.json()["id"]
+    else:
+        return None
+
 if __name__ == "__main__":
     document_path = "reports/Q1_2024_Financial_Report.docx"
     content = simulate_read_document(document_path)
@@ -63,3 +75,10 @@ if __name__ == "__main__":
 
     print("\n--- LLM Generated Summary ---")
     print(summary)
+
+    print("\n--- Creating Wayflow Workflow ---")
+    workflow_id = create_wayflow_workflow(content)
+    if workflow_id:
+        print(f"Workflow created successfully: {workflow_id}")
+    else:
+        print("Error creating workflow")
