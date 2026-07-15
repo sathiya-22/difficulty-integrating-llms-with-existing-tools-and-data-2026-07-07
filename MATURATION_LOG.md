@@ -1,0 +1,1 @@
+- 2024-07-07: Introduced pydantic-settings for robust environment variable management and type validation, separating configuration concerns into a dedicated `config.py` file.
